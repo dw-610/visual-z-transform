@@ -1,5 +1,5 @@
 """
-This script plots a pole-zero plot.
+Plotting utilities for pole-zero plots in the z-domain.
 """
 
 # -----------------------------------------------------------------------------
