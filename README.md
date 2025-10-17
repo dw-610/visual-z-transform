@@ -4,10 +4,12 @@ An interactive tool for visualizing digital filter pole-zero plots and their cor
 
 ## Features
 
-- **Interactive Pole-Zero Placement**: Click to add/remove poles and zeros on the complex z-plane
+- **Interactive Pole-Zero Placement**: Click to add poles and zeros on the complex z-plane
+- **Drag-to-Move**: Drag existing poles/zeros to reposition them in real-time
 - **Real-time Frequency Response**: Automatically updates magnitude response as you modify poles/zeros
 - **Dual Plot Display**: Side-by-side pole-zero and frequency response visualization
 - **Log/Linear Scale Toggle**: Switch between dB and linear magnitude scales
+- **Intuitive Controls**: Simple click/drag interface with keyboard shortcuts
 
 ## Installation
 
@@ -27,14 +29,19 @@ Run the interactive pole-zero editor:
 python interactive.py
 ```
 
-**Controls:**
-- **Left click**: Add/remove pole (red X)
-- **Right click**: Add/remove zero (blue O)
+**Mouse Controls:**
+- **Left click** (empty space): Add pole (red X)
+- **Left click** (on existing pole): Remove pole
+- **Drag** (existing pole): Move pole to new position
+- **Right click** (empty space): Add zero (blue O)
+- **Right click** (on existing zero): Remove zero
+- **Drag** (existing zero): Move zero to new position
+
+**Keyboard Shortcuts:**
 - **Press 'l'**: Toggle log/linear scale on frequency response
 - **Press 'c'**: Clear all poles and zeros
-- **Close window**: Exit
 
-Click near an existing pole or zero to remove it. The frequency response updates automatically.
+**How it works:** Click-and-drag to move a pole/zero. A quick click without dragging removes it. The frequency response updates automatically in real-time.
 
 ### Standalone Frequency Response
 

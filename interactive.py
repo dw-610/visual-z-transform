@@ -42,7 +42,8 @@ def interactive_pole_zero_plot(initial_poles=None, initial_zeros=None):
     state = {
         'poles': list(initial_poles),
         'zeros': list(initial_zeros),
-        'log_scale': True  # Start with log scale for frequency response
+        'log_scale': True,  # Start with log scale for frequency response
+        'dragging': None  # Track drag state: {'type': 'pole'/'zero', 'index': int, 'start_pos': complex}
     }
 
     # Removal threshold (distance in complex plane)
@@ -99,8 +100,8 @@ def interactive_pole_zero_plot(initial_poles=None, initial_zeros=None):
         fig.canvas.draw()
 
 
-    def onclick(event):
-        """Handle mouse click events."""
+    def on_press(event):
+        """Handle mouse button press events."""
         # Check if click is inside pole-zero plot axes
         if event.inaxes != ax_pz:
             return
@@ -110,34 +111,96 @@ def interactive_pole_zero_plot(initial_poles=None, initial_zeros=None):
 
         # Left click: poles
         if event.button == 1:
-            # Check if clicking near existing pole
-            removed = False
+            # Check if clicking near existing pole (for dragging)
             for i, pole in enumerate(state['poles']):
                 if abs(pole - z_click) < CLICK_THRESHOLD:
-                    state['poles'].pop(i)
-                    removed = True
-                    break
+                    # Start drag operation
+                    state['dragging'] = {
+                        'type': 'pole',
+                        'index': i,
+                        'start_pos': pole
+                    }
+                    return
 
-            # If didn't remove, add new pole
-            if not removed:
-                state['poles'].append(z_click)
+            # If not near existing, add new pole
+            state['poles'].append(z_click)
+            redraw()
 
         # Right click: zeros
         elif event.button == 3:
-            # Check if clicking near existing zero
-            removed = False
+            # Check if clicking near existing zero (for dragging)
             for i, zero in enumerate(state['zeros']):
                 if abs(zero - z_click) < CLICK_THRESHOLD:
-                    state['zeros'].pop(i)
-                    removed = True
-                    break
+                    # Start drag operation
+                    state['dragging'] = {
+                        'type': 'zero',
+                        'index': i,
+                        'start_pos': zero
+                    }
+                    return
 
-            # If didn't remove, add new zero
-            if not removed:
-                state['zeros'].append(z_click)
+            # If not near existing, add new zero
+            state['zeros'].append(z_click)
+            redraw()
 
-        # Redraw the plot
+
+    def on_motion(event):
+        """Handle mouse motion events for dragging."""
+        # Only process if currently dragging
+        if state['dragging'] is None:
+            return
+
+        # Check if still inside pole-zero plot axes
+        if event.inaxes != ax_pz:
+            return
+
+        # Get new position as complex number
+        z_new = event.xdata + 1j * event.ydata
+
+        # Update position of dragged pole/zero
+        drag_info = state['dragging']
+        if drag_info['type'] == 'pole':
+            state['poles'][drag_info['index']] = z_new
+        else:  # zero
+            state['zeros'][drag_info['index']] = z_new
+
+        # Redraw for real-time visual feedback
         redraw()
+
+
+    def on_release(event):
+        """Handle mouse button release events."""
+        # Only process if currently dragging
+        if state['dragging'] is None:
+            return
+
+        drag_info = state['dragging']
+
+        # Check if still inside pole-zero plot axes
+        if event.inaxes == ax_pz:
+            # Get final position
+            z_final = event.xdata + 1j * event.ydata
+
+            # Calculate distance moved from start
+            distance_moved = abs(z_final - drag_info['start_pos'])
+
+            # If barely moved, treat as click to remove
+            if distance_moved < 0.05:
+                if drag_info['type'] == 'pole':
+                    state['poles'].pop(drag_info['index'])
+                else:  # zero
+                    state['zeros'].pop(drag_info['index'])
+                redraw()
+        else:
+            # Released outside plot - revert to original position
+            if drag_info['type'] == 'pole':
+                state['poles'][drag_info['index']] = drag_info['start_pos']
+            else:  # zero
+                state['zeros'][drag_info['index']] = drag_info['start_pos']
+            redraw()
+
+        # Clear drag state
+        state['dragging'] = None
 
 
     def onkey(event):
@@ -153,7 +216,9 @@ def interactive_pole_zero_plot(initial_poles=None, initial_zeros=None):
             redraw()
 
     # Connect event handlers
-    fig.canvas.mpl_connect('button_press_event', onclick)
+    fig.canvas.mpl_connect('button_press_event', on_press)
+    fig.canvas.mpl_connect('motion_notify_event', on_motion)
+    fig.canvas.mpl_connect('button_release_event', on_release)
     fig.canvas.mpl_connect('key_press_event', onkey)
 
     # Initial draw
@@ -162,10 +227,12 @@ def interactive_pole_zero_plot(initial_poles=None, initial_zeros=None):
     # Print instructions
     print("\nInteractive Pole-Zero Plot Editor")
     print("=" * 50)
-    print("Left click:  Add/remove pole (red X)")
-    print("Right click: Add/remove zero (blue O)")
-    print("Press 'l':   Toggle log/linear scale")
-    print("Press 'c':   Clear all poles and zeros")
+    print("Left click:   Add pole (red X)")
+    print("Right click:  Add zero (blue O)")
+    print("Drag:         Move existing pole/zero")
+    print("Quick click:  Remove pole/zero (click without dragging)")
+    print("Press 'l':    Toggle log/linear scale")
+    print("Press 'c':    Clear all poles and zeros")
     print("Close window to exit")
     print("=" * 50)
 
