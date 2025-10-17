@@ -17,8 +17,10 @@ from plotting import (
     plot_poles,
     plot_zeros,
     set_axis_limits,
-    clean_up_plot
+    clean_up_plot,
+    plot_frequency_response_on_axis
 )
+from frequency_response import get_frequency_response
 
 # -----------------------------------------------------------------------------
 
@@ -39,26 +41,30 @@ def interactive_pole_zero_plot(initial_poles=None, initial_zeros=None):
 
     state = {
         'poles': list(initial_poles),
-        'zeros': list(initial_zeros)
+        'zeros': list(initial_zeros),
+        'log_scale': True  # Start with log scale for frequency response
     }
 
     # Removal threshold (distance in complex plane)
     CLICK_THRESHOLD = 0.1
 
-    # Create figure
-    fig, ax = plt.subplots()
+    # Create figure with two subplots side by side
+    fig, (ax_pz, ax_freq) = plt.subplots(1, 2, figsize=(14, 6))
 
 
     def redraw():
         """Redraw the entire plot with current poles and zeros."""
-        ax.clear()
+        # Clear both axes
+        ax_pz.clear()
+        ax_freq.clear()
 
-        plot_unit_circle(ax)
+        # Redraw pole-zero plot
+        plot_unit_circle(ax_pz)
 
         if state['poles']:
-            plot_poles(ax, np.array(state['poles']))
+            plot_poles(ax_pz, np.array(state['poles']))
         if state['zeros']:
-            plot_zeros(ax, np.array(state['zeros']))
+            plot_zeros(ax_pz, np.array(state['zeros']))
 
         # Set axis limits (with defaults if no poles/zeros)
         if state['poles'] or state['zeros']:
@@ -70,19 +76,33 @@ def interactive_pole_zero_plot(initial_poles=None, initial_zeros=None):
                 np.array(state['zeros']) if state['zeros']
                 else np.array([0])
             )
-            set_axis_limits(ax, poles_arr, zeros_arr)
+            set_axis_limits(ax_pz, poles_arr, zeros_arr)
         else:
-            ax.set_xlim([-1.5, 1.5])
-            ax.set_ylim([-1.5, 1.5])
+            ax_pz.set_xlim([-1.5, 1.5])
+            ax_pz.set_ylim([-1.5, 1.5])
 
-        clean_up_plot(ax)
+        clean_up_plot(ax_pz)
+
+        # Compute and plot frequency response (only if poles or zeros exist)
+        if state['poles'] or state['zeros']:
+            w, H = get_frequency_response(state['poles'], state['zeros'])
+            plot_frequency_response_on_axis(ax_freq, w, H, log=state['log_scale'])
+            ax_freq.set_title('Frequency Response')
+        else:
+            # No poles or zeros - show empty plot with message
+            ax_freq.text(0.5, 0.5, 'Add poles/zeros to see frequency response',
+                        ha='center', va='center', transform=ax_freq.transAxes,
+                        fontsize=12, alpha=0.5)
+            ax_freq.set_title('Frequency Response')
+
+        plt.tight_layout()
         fig.canvas.draw()
 
 
     def onclick(event):
         """Handle mouse click events."""
-        # Check if click is inside axes
-        if event.inaxes != ax:
+        # Check if click is inside pole-zero plot axes
+        if event.inaxes != ax_pz:
             return
 
         # Get click location as complex number
@@ -120,19 +140,34 @@ def interactive_pole_zero_plot(initial_poles=None, initial_zeros=None):
         redraw()
 
 
-    # Connect event handler
+    def onkey(event):
+        """Handle keyboard events."""
+        if event.key == 'l':
+            # Toggle log scale
+            state['log_scale'] = not state['log_scale']
+            redraw()
+        elif event.key == 'c':
+            # Clear all poles and zeros
+            state['poles'].clear()
+            state['zeros'].clear()
+            redraw()
+
+    # Connect event handlers
     fig.canvas.mpl_connect('button_press_event', onclick)
+    fig.canvas.mpl_connect('key_press_event', onkey)
 
     # Initial draw
     redraw()
 
     # Print instructions
     print("\nInteractive Pole-Zero Plot Editor")
-    print("=" * 40)
+    print("=" * 50)
     print("Left click:  Add/remove pole (red X)")
     print("Right click: Add/remove zero (blue O)")
+    print("Press 'l':   Toggle log/linear scale")
+    print("Press 'c':   Clear all poles and zeros")
     print("Close window to exit")
-    print("=" * 40)
+    print("=" * 50)
 
     plt.show()
 

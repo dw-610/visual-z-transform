@@ -57,6 +57,36 @@ def clean_up_plot(ax):
     ax.set_title('Pole-Zero Plot')
 
 
+def plot_frequency_response_on_axis(ax, w: np.ndarray, H: np.ndarray, log: bool = False):
+    """
+    Plots the frequency response magnitude on a given axis.
+
+    Args:
+        ax: Matplotlib axis to plot on
+        w: Frequency array (rad/sample)
+        H: Complex frequency response H(z)
+        log: If True, plot in dB scale; if False, plot linear magnitude
+    """
+    if log:
+        ax.plot(w, 20 * np.log10(np.abs(H)))
+        ax.set_ylabel(r'$|H(e^{j\omega})|$ (dB)')
+        ax.set_ylim([-60, 30])
+    else:
+        ax.plot(w, np.abs(H))
+        ax.set_ylabel(r'$|H(e^{j\omega})|$')
+
+    ax.set_xlabel('Frequency (rad/sample)')
+
+    # Set x-axis ticks at multiples of pi/4
+    tick_positions = np.arange(-np.pi, np.pi + np.pi/4, np.pi/4)
+    tick_labels = [r'$-\pi$', r'$-3\pi/4$', r'$-\pi/2$', r'$-\pi/4$', '0',
+                   r'$\pi/4$', r'$\pi/2$', r'$3\pi/4$', r'$\pi$']
+    ax.set_xticks(tick_positions)
+    ax.set_xticklabels(tick_labels)
+
+    ax.grid(True, alpha=0.3)
+
+
 def plot_frequency_response(w: np.ndarray, H: np.ndarray, log: bool = False):
     """
     Plots the frequency response magnitude.

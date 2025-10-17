@@ -15,7 +15,7 @@ def get_frequency_response(poles: list, zeros: list):
     """Given poles and zeros, computes the frequency response H(e^jω)."""
     
     w = np.linspace(-np.pi, np.pi, 1000)
-    z = np.exp(-1j * w)
+    z = np.exp(1j * w)
 
     convert = lambda pz: (1 - pz*(1/z))
 
