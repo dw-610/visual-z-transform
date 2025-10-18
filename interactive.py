@@ -18,7 +18,8 @@ from plotting import (
     plot_zeros,
     set_axis_limits,
     clean_up_plot,
-    plot_frequency_response_on_axis
+    plot_frequency_response_on_axis,
+    plot_phase_response_on_axis
 )
 from frequency_response import get_frequency_response
 
@@ -49,15 +50,20 @@ def interactive_pole_zero_plot(initial_poles=None, initial_zeros=None):
     # Removal threshold (distance in complex plane)
     CLICK_THRESHOLD = 0.1
 
-    # Create figure with two subplots side by side
-    fig, (ax_pz, ax_freq) = plt.subplots(1, 2, figsize=(14, 6))
+    # Create figure with 2x2 grid: pole-zero on left (spanning both rows),
+    # magnitude response top-right, phase response bottom-right
+    fig = plt.figure(figsize=(14, 8))
+    ax_pz = plt.subplot2grid((2, 2), (0, 0), rowspan=2)
+    ax_mag = plt.subplot2grid((2, 2), (0, 1))
+    ax_phase = plt.subplot2grid((2, 2), (1, 1), sharex=ax_mag)
 
 
     def redraw():
         """Redraw the entire plot with current poles and zeros."""
-        # Clear both axes
+        # Clear all axes
         ax_pz.clear()
-        ax_freq.clear()
+        ax_mag.clear()
+        ax_phase.clear()
 
         # Redraw pole-zero plot
         plot_unit_circle(ax_pz)
@@ -87,14 +93,25 @@ def interactive_pole_zero_plot(initial_poles=None, initial_zeros=None):
         # Compute and plot frequency response (only if poles or zeros exist)
         if state['poles'] or state['zeros']:
             w, H = get_frequency_response(state['poles'], state['zeros'])
-            plot_frequency_response_on_axis(ax_freq, w, H, log=state['log_scale'])
-            ax_freq.set_title('Frequency Response')
+
+            # Plot magnitude response
+            plot_frequency_response_on_axis(ax_mag, w, H, log=state['log_scale'])
+            ax_mag.set_title('Magnitude Response')
+
+            # Plot phase response
+            plot_phase_response_on_axis(ax_phase, w, H)
+            ax_phase.set_title('Phase Response')
         else:
-            # No poles or zeros - show empty plot with message
-            ax_freq.text(0.5, 0.5, 'Add poles/zeros to see frequency response',
-                        ha='center', va='center', transform=ax_freq.transAxes,
+            # No poles or zeros - show empty plots with message
+            ax_mag.text(0.5, 0.5, 'Add poles/zeros to see frequency response',
+                        ha='center', va='center', transform=ax_mag.transAxes,
                         fontsize=12, alpha=0.5)
-            ax_freq.set_title('Frequency Response')
+            ax_mag.set_title('Magnitude Response')
+
+            ax_phase.text(0.5, 0.5, 'Add poles/zeros to see phase response',
+                         ha='center', va='center', transform=ax_phase.transAxes,
+                         fontsize=12, alpha=0.5)
+            ax_phase.set_title('Phase Response')
 
         plt.tight_layout()
         fig.canvas.draw()

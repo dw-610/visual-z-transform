@@ -87,6 +87,30 @@ def plot_frequency_response_on_axis(ax, w: np.ndarray, H: np.ndarray, log: bool 
     ax.grid(True, alpha=0.3)
 
 
+def plot_phase_response_on_axis(ax, w: np.ndarray, H: np.ndarray):
+    """
+    Plots the phase response on a given axis.
+
+    Args:
+        ax: Matplotlib axis to plot on
+        w: Frequency array (rad/sample)
+        H: Complex frequency response H(z)
+    """
+    phase = np.unwrap(np.angle(H))
+    ax.plot(w, phase)
+    ax.set_ylabel(r'Phase (rad)')
+    ax.set_xlabel('Frequency (rad/sample)')
+
+    # Set x-axis ticks at multiples of pi/4
+    tick_positions = np.arange(-np.pi, np.pi + np.pi/4, np.pi/4)
+    tick_labels = [r'$-\pi$', r'$-3\pi/4$', r'$-\pi/2$', r'$-\pi/4$', '0',
+                   r'$\pi/4$', r'$\pi/2$', r'$3\pi/4$', r'$\pi$']
+    ax.set_xticks(tick_positions)
+    ax.set_xticklabels(tick_labels)
+
+    ax.grid(True, alpha=0.3)
+
+
 def plot_frequency_response(w: np.ndarray, H: np.ndarray, log: bool = False):
     """
     Plots the frequency response magnitude.

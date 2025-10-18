@@ -6,8 +6,8 @@ An interactive tool for visualizing digital filter pole-zero plots and their cor
 
 - **Interactive Pole-Zero Placement**: Click to add poles and zeros on the complex z-plane
 - **Drag-to-Move**: Drag existing poles/zeros to reposition them in real-time
-- **Real-time Frequency Response**: Automatically updates magnitude response as you modify poles/zeros
-- **Dual Plot Display**: Side-by-side pole-zero and frequency response visualization
+- **Real-time Frequency Response**: Automatically updates magnitude and phase response as you modify poles/zeros
+- **Triple Plot Display**: Pole-zero plot alongside magnitude and phase response visualization
 - **Log/Linear Scale Toggle**: Switch between dB and linear magnitude scales
 - **Intuitive Controls**: Simple click/drag interface with keyboard shortcuts
 
@@ -76,7 +76,8 @@ $$H(e^{j\omega}) = \frac{\prod_i (1 - z_i e^{-j\omega})}{\prod_j (1 - p_j e^{-j\
 ### Implementation
 
 - **Pole-Zero Plot**: Shows pole and zero locations in the complex z-plane with the unit circle for stability reference
-- **Frequency Response**: Magnitude $|H(e^{j\omega})|$ plotted vs. frequency $\omega$ from $-\pi$ to $\pi$ rad/sample
+- **Magnitude Response**: Magnitude $|H(e^{j\omega})|$ plotted vs. frequency $\omega$ from $-\pi$ to $\pi$ rad/sample
+- **Phase Response**: Unwrapped phase $\angle H(e^{j\omega})$ plotted vs. frequency $\omega$ from $-\pi$ to $\pi$ rad/sample
 - **Log Scale**: Displays magnitude in dB: $20 \log_{10}|H(e^{j\omega})|$
 
 ## Requirements
